@@ -73,7 +73,7 @@ def build_argo_yaml(tasks_to_run, data_to_run, job_name, run_id):
                                   job_name=job_name,
                                   run_id=run_id,
                                   container_id=data_to_run[t]['image'],
-                                  executor=['python', 'src/{job_name}/executor.py'.format(job_name=job_name)],
+                                  executor=['run'],
                                   command_to_run=[data_to_run[t]['command']])
                  for t in data_to_run]
 

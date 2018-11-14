@@ -7,8 +7,6 @@ COPY requirements.txt /workflow/
 COPY src/ /workflow/src/
 COPY test/ /workflow/test/
 
-WORKDIR workflow/
-
 RUN find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf
-RUN pip install -U -r requirements.txt
-RUN pip install .
+RUN pip install -U -r workflow/requirements.txt
+RUN pip install workflow/.
