@@ -1,11 +1,10 @@
 import os
-import json
 
-import argparse
 import networkx as nx
 import yaml
 
-from workflow import argo
+from workflow import argo, data
+from workflow import settings as s
 
 
 DEPENDENCIES_FILE = os.path.join(os.path.abspath(
@@ -15,7 +14,6 @@ RESOURCES_PATH = os.path.join(os.path.abspath(
 
 
 def get_all_files(dependencies):
-    # TODO: fix for primary inputs like train.csv and test.csv
     all_scripts = list(dependencies.keys())
     all_inputs = [n for m in [x['inputs']
                               for x in dependencies.values()] for n in m]
@@ -57,7 +55,7 @@ def create_subgraph(G, node):
     return G.subgraph(nodes)
 
 
-def next_tasks(dag, changed_step):
+def get_next_tasks(dag, changed_step):
     sub_dag = create_subgraph(dag, changed_step)
 
     sorted_sub_dag = nx.lexicographical_topological_sort(sub_dag)
@@ -69,24 +67,7 @@ def next_tasks(dag, changed_step):
     return pendent_tasks
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("job_name", help="job_name", type=str)
-    parser.add_argument("changed_file", help="changed file", type=str)
-    parser.add_argument("id", help="run id", type=str)
-    args = parser.parse_args()
-    changed_file = args.changed_file
-    job_name = args.job_name
-    run_id = args.id
-
-
-    with open(DEPENDENCIES_FILE, 'r') as stream:
-        try:
-            dependencies = yaml.load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-
-
+def get_dag(dependencies, changed_file):
     if changed_file not in get_all_files(dependencies):
         raise KeyError('{file} is not a valid file in this job'
                        .format(file=changed_file))
@@ -98,21 +79,64 @@ if __name__ == '__main__':
     if not is_DAG_valid(dag):
         raise Exception('Not valid DAG, check your dependencies.json file')
 
-    next_tasks = next_tasks(dag, changed_file)
-    # TODO: remove the changed file from the list si jamais
+    return create_subgraph(dag, changed_file)
+
+
+def get_pendent_tasks(dag):
+    sorted_sub_dag = nx.lexicographical_topological_sort(dag)
+    data_sub_dag = dag.nodes(data=True)
+
+    pendent_tasks = [node for node in sorted_sub_dag
+                     if data_sub_dag[node]['type'] == 'operator']
+
+    return pendent_tasks
+
+
+
+def generate_yaml(old_code_url,
+                  new_code_url,
+                  src,
+                  job_name,
+                  run_id):
+
+    old_code_path = os.path.join(s.ARGO_VOLUME, 'old_code')
+    new_code_path = os.path.join(s.ARGO_VOLUME, 'new_code')
+    old_data_path = os.path.join(s.ARGO_VOLUME, 'old_data')
+    new_data_path = os.path.join(s.ARGO_VOLUME, 'new_data')
+    new_dependencies_path = os.path.join(new_code_path, 'dependencies.yaml')
+    # old_dependencies_path = os.path.join(old_code_path, 'dependencies.yaml')
+
+
+    data.download(old_code_url, new_code_url,
+                  old_code_path, new_code_path,
+                  old_data_path, new_data_path)
+
+    # dependencies_same = filecmp.cmp(new_dependencies_path, old_dependencies_path)
+
+    with open(new_dependencies_path, 'r') as stream:
+        dependencies = yaml.load(stream)
+
+    changed_files = data.get_changes(dependencies, new_code_path,
+                                     old_code_path, src)
+
+    changed_files = [x for x in changed_files.keys() if changed_files[x]]
+
+    dags = [get_dag(dependencies, x) for x in changed_files]
+
+    final_dag = nx.compose_all(dags)
+
+    next_tasks = get_pendent_tasks(final_dag)
     requeried_inputs = dependencies[next_tasks[0]]['inputs']
 
     data_to_run = {}
-
     for t in next_tasks:
         data_to_run[t] = {'image': dependencies[t]['image'],
                           'command': dependencies[t]['command']}
 
     yaml_file = argo.build_argo_yaml(next_tasks, data_to_run, job_name, run_id)
 
-    # TODO: Change it do use yaml library, it is nasty
-    yaml_file_path = os.path.join(RESOURCES_PATH, "dag-{job_name}-{id}.yaml".format(job_name=job_name, id=run_id))
-    inputs_file_path = os.path.join(RESOURCES_PATH, "inputs-{job_name}-{id}.txt".format(job_name=job_name, id=run_id))
+    yaml_file_path = os.path.join(s.ARGO_VOLUME, "dag-{job_name}-{id}.yaml".format(job_name=job_name, id=run_id))
+    inputs_file_path = os.path.join(s.ARGO_VOLUME, "inputs-{job_name}-{id}.txt".format(job_name=job_name, id=run_id))
 
     text_file = open(yaml_file_path, "w")
     text_file.write(yaml_file)
