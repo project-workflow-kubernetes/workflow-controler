@@ -12,7 +12,7 @@ help:
 
 build:
 	@docker build -t ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} .
-	@docker run ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} /bin/bash -c "cd workflow; py.test --verbose --color=yes"
+	@docker run ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} /bin/bash -c "cd /workflow; py.test --verbose --color=yes"
 
 
 push:
