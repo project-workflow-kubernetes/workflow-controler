@@ -1,21 +1,21 @@
 REMOTE_REPO=liabifano
+DOCKER_NAME=workflow
+DOCKER_LABEL=latest
+GIT_MASTER_HEAD_SHA:=$(shell git rev-parse --short=7 --verify HEAD)
+TEST_PATH=./
+
 
 help:
-	@echo "build-local"
-	@echo "build-and-push"
-	@echo "test"
+	@echo "build"
+	@echo "push"
 
 
-build-local:
-	@docker build -t  ${REMOTE_REPO}/workflow .
+build:
+	@docker build -t ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} .
+	@docker run ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} /bin/bash -c "cd workflow; py.test --verbose --color=yes"
 
 
-build-and-push:
-	@docker login --username=${DOCKER_USER} --password=${DOCKER_PASS} 2> /dev/null
-	@docker build -t ${REMOTE_REPO}/workflow .
-	@docker push ${REMOTE_REPO}/workflow
-
-
-test: build-local
-	-@docker run ${REMOTE_REPO}/workflow /bin/bash -c "cd executor; py.test --verbose --color=yes"
-	@docker rmi -f ${REMOTE_REPO}/workflow
+push:
+	@docker tag ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} ${REMOTE_REPO}/${DOCKER_NAME}:${GIT_MASTER_HEAD_SHA}
+	@echo "${DOCKER_PASSWORD}" | docker login -u="${DOCKER_USERNAME}" --password-stdin
+	@docker push ${REMOTE_REPO}/${DOCKER_NAME}:${GIT_MASTER_HEAD_SHA}

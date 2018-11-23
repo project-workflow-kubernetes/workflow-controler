@@ -1,0 +1,19 @@
+sudo: required
+notifications:
+  email: false
+services:
+- docker
+language: python
+python:
+- 3.6
+git:
+  depth: false
+script:
+- make build
+- make push
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: bash .travis-deploy.sh
+  on:
+    branch: master
