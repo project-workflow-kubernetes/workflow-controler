@@ -27,7 +27,8 @@ setup(name='workflow',
           'Flask-API==0.7.1',
           'eventlet==0.24.1',
           'gunicorn==19.9.0',
-          'GitPython==2.1.10'
+          'GitPython==2.1.10',
+          'minio==4.0.6'
       ],
       include_package_data=True,
       zip_safe=False)
