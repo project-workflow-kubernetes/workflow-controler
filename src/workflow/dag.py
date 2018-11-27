@@ -82,7 +82,8 @@ def get_dag(dependencies, changed_file):
     return create_subgraph(dag, changed_file)
 
 
-def get_pendent_tasks(dag):
+def get_pendent_tasks(dags):
+    dag = nx.compose_all(dags)
     sorted_sub_dag = nx.lexicographical_topological_sort(dag)
     data_sub_dag = dag.nodes(data=True)
 
@@ -125,7 +126,7 @@ def generate_yaml(old_code_url,
 
     final_dag = nx.compose_all(dags)
 
-    next_tasks = get_pendent_tasks(final_dag)
+    next_tasks = get_pendent_tasks(dags)
     requeried_inputs = dependencies[next_tasks[0]]['inputs']
 
     data_to_run = {}
