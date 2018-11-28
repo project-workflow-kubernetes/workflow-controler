@@ -65,6 +65,18 @@ TASKS = """
         template: {job_name}-{task_name}"""
 
 
+def rename(s):
+    return s.replace('.', '-').replace('_', '-')
+
+def transform_data(dependencies, tasks):
+    data = {}
+    for t in tasks:
+        data[t] = {'image': dependencies[t]['image'],
+                   'command': dependencies[t]['command']}
+
+    return data
+
+
 def build_argo_yaml(tasks_to_run, data_to_run, job_name, run_id):
     # TODO: find a better way but PYAML doesn't work as expected, it doesn't keep it in the same order
     header = ARGO_HEADER.format(job_name=job_name, run_id=run_id)
@@ -80,11 +92,13 @@ def build_argo_yaml(tasks_to_run, data_to_run, job_name, run_id):
     dag_header = ARGO_DAG_HEADER.format(job_name=job_name, run_id=run_id)
 
     first_task = FIRST_TASK.format(job_name=job_name,
-                                   task_name=tasks_to_run[0].replace('.', '-').replace('_', '-'),
+                                   task_name=tasks_to_run[0].replace(
+                                       '.', '-').replace('_', '-'),
                                    run_id=run_id)
 
     dag = [TASKS.format(job_name=job_name,
-                        task_name=tasks_to_run[i].replace('.', '-').replace('_', '-'),
+                        task_name=tasks_to_run[i].replace(
+                            '.', '-').replace('_', '-'),
                         prev_task_name=tasks_to_run[i-1].replace('.', '-').replace('_', '-'))
            for i in range(1, len(tasks_to_run))]
 

@@ -1,16 +1,4 @@
-import os
-
 import networkx as nx
-import yaml
-
-from workflow import argo, data
-from workflow import settings as s
-
-
-DEPENDENCIES_FILE = os.path.join(os.path.abspath(
-    os.path.join(__file__, '../../../..')), 'dependencies.json')
-RESOURCES_PATH = os.path.join(os.path.abspath(
-    os.path.join(__file__, '../../../')), 'resources')
 
 
 def get_all_files(dependencies):
@@ -93,55 +81,59 @@ def get_merged_tasks(dags):
     return pendent_tasks
 
 
+def get_required_data(dependencies, taks):
+    all_inputs = [v['inputs'] for k, v in dependencies.items() if k in taks]
 
-def generate_yaml(old_code_url,
-                  new_code_url,
-                  src,
-                  job_name,
-                  run_id):
-
-    old_code_path = os.path.join(s.ARGO_VOLUME, 'old_code')
-    new_code_path = os.path.join(s.ARGO_VOLUME, 'new_code')
-    old_data_path = os.path.join(s.ARGO_VOLUME, 'old_data')
-    new_data_path = os.path.join(s.ARGO_VOLUME, 'new_data')
-    new_dependencies_path = os.path.join(new_code_path, 'dependencies.yaml')
-    # old_dependencies_path = os.path.join(old_code_path, 'dependencies.yaml')
+    return list(set(sum(all_inputs, [])))
 
 
-    data.download(old_code_url, new_code_url,
-                  old_code_path, new_code_path,
-                  old_data_path, new_data_path)
 
+# def generate_yaml(old_code_url,
+#                   new_code_url,
+#                   src,
+#                   job_name,
+#                   run_id):
 
-    with open(new_dependencies_path, 'r') as stream:
-        dependencies = yaml.load(stream)
+#     old_code_path = os.path.join(s.ARGO_VOLUME, 'old_code')
+#     new_code_path = os.path.join(s.ARGO_VOLUME, 'new_code')
+#     old_data_path = os.path.join(s.ARGO_VOLUME, 'old_data')
+#     new_data_path = os.path.join(s.ARGO_VOLUME, 'new_data')
+#     new_dependencies_path = os.path.join(new_code_path, 'dependencies.yaml')
+#     # old_dependencies_path = os.path.join(old_code_path, 'dependencies.yaml')
 
-    changed_files = data.get_changes(dependencies, new_code_path,
-                                     old_code_path, src)
+#     data.download(old_code_url, new_code_url,
+#                   old_code_path, new_code_path,
+#                   old_data_path, new_data_path)
 
-    changed_files = [x for x in changed_files.keys() if changed_files[x]]
+#     with open(new_dependencies_path, 'r') as stream:
+#         dependencies = yaml.load(stream)
 
-    dags = [get_dag(dependencies, x) for x in changed_files]
+#     changed_files = data.get_changes(dependencies, new_code_path,
+#                                      old_code_path, src)
 
-    final_dag = nx.compose_all(dags)
+#     changed_files = [x for x in changed_files.keys() if changed_files[x]]
 
-    next_tasks = get_merged_tasks(dags)
-    requeried_inputs = dependencies[next_tasks[0]]['inputs']
+#     dags = [get_dag(dependencies, x) for x in changed_files]
 
-    data_to_run = {}
-    for t in next_tasks:
-        data_to_run[t] = {'image': dependencies[t]['image'],
-                          'command': dependencies[t]['command']}
+#     next_tasks = get_merged_tasks(dags)
+#     requeried_inputs = get_required_inputs(dependencies, next_tasks)
 
-    yaml_file = argo.build_argo_yaml(next_tasks, data_to_run, job_name, run_id)
+#     data_to_run = {}
+#     for t in next_tasks:
+#         data_to_run[t] = {'image': dependencies[t]['image'],
+#                           'command': dependencies[t]['command']}
 
-    yaml_file_path = os.path.join(s.ARGO_VOLUME, "dag-{job_name}-{id}.yaml".format(job_name=job_name, id=run_id))
-    inputs_file_path = os.path.join(s.ARGO_VOLUME, "inputs-{job_name}-{id}.txt".format(job_name=job_name, id=run_id))
+#     yaml_file = argo.build_argo_yaml(next_tasks, data_to_run, job_name, run_id)
 
-    text_file = open(yaml_file_path, "w")
-    text_file.write(yaml_file)
-    text_file.close()
+#     yaml_file_path = os.path.join(
+#         s.ARGO_VOLUME, "dag-{job_name}-{id}.yaml".format(job_name=job_name, id=run_id))
+#     inputs_file_path = os.path.join(
+#         s.ARGO_VOLUME, "inputs-{job_name}-{id}.txt".format(job_name=job_name, id=run_id))
 
-    with open(inputs_file_path, 'w') as f:
-        for item in requeried_inputs:
-            f.write("%s\n" % item)
+#     text_file = open(yaml_file_path, "w")
+#     text_file.write(yaml_file)
+#     text_file.close()
+
+#     with open(inputs_file_path, 'w') as f:
+#         for item in requeried_inputs:
+#             f.write("%s\n" % item)

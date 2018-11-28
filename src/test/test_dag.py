@@ -2,7 +2,7 @@ import unittest
 
 import networkx as nx
 
-from workflow import dag as d
+from workflow.dag import dag_handler as d
 
 
 class TestDag(unittest.TestCase):
@@ -147,6 +147,14 @@ class TestDag(unittest.TestCase):
         self.assertListEqual(output, expected_output)
 
 
+    def test_get_required_data(self):
+        expected_output = ['d1', 'd5']
+        output = d.get_required_data(self.__class__.dependencies, ['o3', 'o4'])
+        self.assertListEqual(sorted(output), sorted(expected_output))
+
+        expected_output = []
+        output = d.get_required_data(self.__class__.dependencies, ['o4'])
+        self.assertListEqual(sorted(output), sorted(expected_output))
 
 
 if __name__ == '__main__':
