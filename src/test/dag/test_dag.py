@@ -111,37 +111,37 @@ class TestDag(unittest.TestCase):
 
     def test_get_merged_tasks(self):
         changed_files = ['o1', 'd3']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = ['o1', 'o2', 'o3']
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)
 
         changed_files = ['d3']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = ['o2', 'o3']
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)
 
         changed_files = ['o2', 'd4']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = ['o2', 'o3']
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)
 
         changed_files = ['d1']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = ['o1', 'o2', 'o3']
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)
 
         changed_files = ['d5', 'o4']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = ['o3', 'o4']
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)
 
         changed_files = ['d6']
-        dags = [d.get_dag(self.__class__.dependencies, c) for c in changed_files]
+        dags = [d.get_subdag(self.__class__.dependencies, c) for c in changed_files]
         expected_output = []
         output = d.get_merged_tasks(dags)
         self.assertListEqual(output, expected_output)

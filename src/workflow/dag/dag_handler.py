@@ -27,7 +27,7 @@ def get_dag_inputs(tasks):
     return edges, attrs
 
 
-def get_dag(dependencies, changed_file):
+def get_subdag(dependencies, changed_file):
     if changed_file not in get_all_files(dependencies):
         raise KeyError('{file} is not a valid file in this job'
                        .format(file=changed_file))
@@ -43,7 +43,6 @@ def get_dag(dependencies, changed_file):
 
 
 def is_dag_valid(dag):
-    # TODO: add more test such as no missing nodes and no nodes alone
     return nx.is_directed_acyclic_graph(dag)
 
 
@@ -81,8 +80,8 @@ def get_merged_tasks(dags):
     return pendent_tasks
 
 
-def get_required_data(dependencies, taks):
-    all_inputs = [v['inputs'] for k, v in dependencies.items() if k in taks]
+def get_required_data(dependencies, tasks):
+    all_inputs = [v['inputs'] for k, v in dependencies.items() if k in tasks]
 
     return list(set(sum(all_inputs, [])))
 
