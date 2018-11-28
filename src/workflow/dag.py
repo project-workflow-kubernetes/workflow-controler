@@ -23,7 +23,7 @@ def get_all_files(dependencies):
     return list(set(all_scripts + all_outputs + all_inputs))
 
 
-def build_DAG(tasks):
+def get_dag_inputs(tasks):
     edges = []
     attrs = {}
 
@@ -39,12 +39,27 @@ def build_DAG(tasks):
     return edges, attrs
 
 
-def is_DAG_valid(dag):
+def get_dag(dependencies, changed_file):
+    if changed_file not in get_all_files(dependencies):
+        raise KeyError('{file} is not a valid file in this job'
+                       .format(file=changed_file))
+
+    edges, nodes_attr = get_dag_inputs(dependencies)
+    dag = nx.DiGraph(edges)
+    nx.set_node_attributes(dag, nodes_attr)
+
+    if not is_dag_valid(dag):
+        raise Exception('Not valid DAG, check your dependencies.json file')
+
+    return get_subgraph(dag, changed_file)
+
+
+def is_dag_valid(dag):
     # TODO: add more test such as no missing nodes and no nodes alone
     return nx.is_directed_acyclic_graph(dag)
 
 
-def create_subgraph(G, node):
+def get_subgraph(G, node):
     edges = nx.dfs_successors(G, node)
     nodes = []
 
@@ -56,7 +71,7 @@ def create_subgraph(G, node):
 
 
 def get_next_tasks(dag, changed_step):
-    sub_dag = create_subgraph(dag, changed_step)
+    sub_dag = get_subgraph(dag, changed_step)
 
     sorted_sub_dag = nx.lexicographical_topological_sort(sub_dag)
     data_sub_dag = sub_dag.nodes(data=True)
@@ -67,22 +82,7 @@ def get_next_tasks(dag, changed_step):
     return pendent_tasks
 
 
-def get_dag(dependencies, changed_file):
-    if changed_file not in get_all_files(dependencies):
-        raise KeyError('{file} is not a valid file in this job'
-                       .format(file=changed_file))
-
-    edges, nodes_attr = build_DAG(dependencies)
-    dag = nx.DiGraph(edges)
-    nx.set_node_attributes(dag, nodes_attr)
-
-    if not is_DAG_valid(dag):
-        raise Exception('Not valid DAG, check your dependencies.json file')
-
-    return create_subgraph(dag, changed_file)
-
-
-def get_pendent_tasks(dags):
+def get_merged_tasks(dags):
     dag = nx.compose_all(dags)
     sorted_sub_dag = nx.lexicographical_topological_sort(dag)
     data_sub_dag = dag.nodes(data=True)
@@ -112,7 +112,6 @@ def generate_yaml(old_code_url,
                   old_code_path, new_code_path,
                   old_data_path, new_data_path)
 
-    # dependencies_same = filecmp.cmp(new_dependencies_path, old_dependencies_path)
 
     with open(new_dependencies_path, 'r') as stream:
         dependencies = yaml.load(stream)
@@ -126,7 +125,7 @@ def generate_yaml(old_code_url,
 
     final_dag = nx.compose_all(dags)
 
-    next_tasks = get_pendent_tasks(dags)
+    next_tasks = get_merged_tasks(dags)
     requeried_inputs = dependencies[next_tasks[0]]['inputs']
 
     data_to_run = {}
