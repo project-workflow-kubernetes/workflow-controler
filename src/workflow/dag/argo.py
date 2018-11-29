@@ -2,10 +2,10 @@ import yaml
 # import yamlordereddictloader
 import networkx as nx
 
-from workflow.dag.dag_handler import get_dag_inputs
+from workflow.dag.dag_helpers import get_dag_inputs
 
 
-def get_header(job_name, run_id, volume_name='minio-pv-claim', log_level='INFO'):
+def get_header(job_name, run_id, volume_name='minio-tmp', log_level='INFO'):
 
     return {'apiVersion': 'argoproj.io/v1alpha1',
             'kind': 'Workflow',
@@ -19,8 +19,8 @@ def get_header(job_name, run_id, volume_name='minio-pv-claim', log_level='INFO')
             }
 
 
-def get_template(job_name, run_id, task_name, container_id, command_to_run,
-                 mount_path='/data', command='run'):
+def get_template(job_name, run_id, task_name, container_id, command,
+                 mount_path='/data'):
 
     return {'name': '{job}-{task}'.format(job=job_name, task=task_name),
             'container': {'image': container_id,
@@ -45,8 +45,7 @@ def get_template(job_name, run_id, task_name, container_id, command_to_run,
                                               'key': 'data_metadata_path'}}}
                           ],
                           'imagePullPolicy': 'IfNotPresent',
-                          'command': command,
-                          'args': [command_to_run],
+                          'command':['python', 'executor/src/executor/main.py', command],
                           'volumeMounts': [{'name': 'shared-volume', 'mountPath': mount_path}]
                           }
             }

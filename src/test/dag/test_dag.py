@@ -2,7 +2,7 @@ import unittest
 
 import networkx as nx
 
-from workflow.dag import dag_handler as d
+from workflow.dag import dag_helpers as d
 
 
 class TestDag(unittest.TestCase):
