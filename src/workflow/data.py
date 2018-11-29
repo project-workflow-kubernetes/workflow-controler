@@ -7,7 +7,6 @@ import filecmp
 import networkx as nx
 
 from workflow import settings as s
-from workflow import dag, argo
 
 
 def create_or_clean(paths):
@@ -35,17 +34,20 @@ def download(old_code_path,
     # TODO: move files to temporary folder
 
 
-def get_changes(dependencies, new_code_path, old_code_path, src):
-    changed_files = {}
+def get_changes(dependencies, new_path, old_path, code_path='code', data_path='data'):
+    data_files = [(d, os.path.join(old_path, data_path, d),
+                   os.path.join(new_path, data_path, d))
+                  for d in dependencies.values()]
 
-    for f in dependencies.keys():
-        new_path = os.path.join(new_code_path, src, f)
-        old_path = os.path.join(old_code_path, src, f)
-        changed_files[f] = not filecmp.cmp(new_path, old_path)
+    code_files = [(d, os.path.join(old_path, code_path, d),
+                   os.path.join(new_path, code_path, d))
+                  for d in dependencies.keys()]
 
-    inputs = [x['inputs'] for x in dependencies.values()]
-    inputs = list(set([y for x in inputs for y in x]))
-    for i in inputs:
-        changed_files[i] = False
+    files = data_files + code_files
+
+    changed_files = []
+    for d, old, new in files:
+        if not filecmp.cmp(old, new):
+            changed_files.append(d)
 
     return changed_files

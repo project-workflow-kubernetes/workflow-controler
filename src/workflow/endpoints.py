@@ -1,16 +1,26 @@
 import sys
 import logging
+from os.path import join
 
 
 from flask import request, Blueprint
 from flask_api import status
 from flask_jsontools import jsonapi
+from minio import Minio
 
 from workflow import settings as s
-from workflow import validation, dag
+from workflow.data import bootstrap as b
+from workflow.data import helpers as h
+from workflow import validation, dag, data_handling
 
 
 mod = Blueprint('endpoints', __name__)
+
+
+minioPersistent = Minio(s.PERSISTENT_ADDR,
+                        access_key=s.ACCESS_KEY,
+                        secret_key=s.SECRET_KEY,
+                        secure=False)
 
 
 @mod.route('/', methods=['GET'])
@@ -22,31 +32,33 @@ def home():
 @mod.route('/run/', methods=['POST'])
 @jsonapi
 def run():
-    REQUIRED_KEYS = ['old_path_data', 'new_path_data',
-                     'old_path_code', 'new_path_code',
-                     'src', 'job_name', 'run_id']
-
     request_json = request.json
-    print(request_json)
+    h.is_valid_request(request_json)
+    job_name = request_json['job_name']
+    job_url = request_json['job_url']
 
-    print(list(request_json.keys()))
+    if not minioPersistent.bucket_exists(job_name):
+        b.register_job(minioPersistent,
+                       job_name,
+                       job_url,
+                       join('src', job_name))
 
-    logging.error(request_json.keys())
+        return status.HTTP_201_CREATED
 
-    if set(request_json.keys()) > set(REQUIRED_KEYS):
-        raise KeyError('Some information is missing')
+    # else:
 
-    if not validation.valid_run_id(s.PERSISTENT_STORAGE,
-                                   request_json['job_name'],
-                                   request_json['run_id']):
-        raise KeyError('run_id is not valid')
+    #     if not validation.valid_run_id(s.PERSISTENT_STORAGE,
+    #                                request_json['job_name'],
+    #                                request_json['run_id']):
+    #         raise KeyError('run_id is not valid')
 
-    dag.generate_yaml(request_json['old_path_code'],
-                      request_json['new_path_code'],
-                      request_json['src'],
-                      request_json['job_name'],
-                      request_json['run_id'])
 
-    # TODO: move files
 
-    return status.HTTP_201_CREATED
+    #     dag.generate_yaml(request_json['old_path_code'],
+    #                   request_json['new_path_code'],
+    #                   request_json['src'],
+    #                   request_json['job_name'],
+    #                   request_json['run_id'])
+
+
+        return status.HTTP_201_CREATED

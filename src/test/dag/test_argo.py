@@ -23,6 +23,12 @@ class TestArgo(unittest.TestCase):
                            'image': 'repo/image4:h4',
                            'command': 'run4'}}
 
+
+    def test_is_dependency_valid(self):
+        self.assertTrue(a.is_dependency_valid(self.__class__.dependencies))
+
+        # self.assertFalse({'o1': {'i': 'bla'}})
+
     def test_get_data_argo(self):
         tasks = ['o2', 'o3']
         expected_output = {'o2': {'dependencies': [],

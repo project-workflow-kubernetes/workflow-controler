@@ -1,8 +1,23 @@
-import yaml
-# import yamlordereddictloader
+import collections
+
 import networkx as nx
 
 from workflow.dag.dag_helpers import get_dag_inputs
+
+
+def is_dependency_valid(dependencies):
+    inputs_req = lambda x: 'inputs' in dependencies[d] and isinstance(x['inputs'], collections.Iterable)
+    outputs_req = lambda x: 'outputs' in dependencies[d] and isinstance(x['outputs'], collections.Iterable)
+    image_req = lambda x: 'image' in dependencies[d] and isinstance(x['image'], str)
+    command_req = lambda x: 'command' in dependencies[d] and isinstance(x['command'], str)
+
+    for d in dependencies:
+        is_ok = inputs_req(dependencies[d]) and outputs_req(dependencies[d]) and image_req(dependencies[d]) or command_req(dependencies[d])
+
+        if not is_ok:
+            return False
+
+    return True
 
 
 def get_header(job_name, run_id, volume_name='minio-tmp', log_level='INFO'):
@@ -45,7 +60,7 @@ def get_template(job_name, run_id, task_name, container_id, command,
                                               'key': 'data_metadata_path'}}}
                           ],
                           'imagePullPolicy': 'IfNotPresent',
-                          'command':['python', 'executor/src/executor/main.py', command],
+                          'command': ['python', 'executor/src/executor/main.py', command],
                           'volumeMounts': [{'name': 'shared-volume', 'mountPath': mount_path}]
                           }
             }
@@ -55,7 +70,8 @@ def get_dag_template(job_name, task_name, dependencies):
     task = '{job}-{task}'.format(job=job_name, task=task_name)
 
     if dependencies:
-        dependencies = ['{}-{}'.format(job_name, rename(d)) for d in dependencies]
+        dependencies = ['{}-{}'.format(job_name, rename(d))
+                        for d in dependencies]
         return {'name': task,
                 'dependencies': dependencies,
                 'template': task}

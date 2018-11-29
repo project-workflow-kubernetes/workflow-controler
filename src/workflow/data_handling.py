@@ -4,14 +4,20 @@ from datetime import datetime
 
 from minio import Minio
 
-import settings as s
-import utils as u
+from workflow import settings as s
+from workflow import utils as u
 
 
 minioPersistent = Minio(s.PERSISTENT_ADDR,
                         access_key=s.ACCESS_KEY,
                         secret_key=s.SECRET_KEY,
                         secure=False)
+
+# if first time, copy everthing, if no, copy files and required inputs
+
+def register_job(minioClient, job_name):
+    return
+
 
 
 def latest_run(minioClient, bucket_name):
