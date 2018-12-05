@@ -28,7 +28,8 @@ setup(name='workflow',
           'eventlet==0.24.1',
           'gunicorn==19.9.0',
           'GitPython==2.1.10',
-          'minio==4.0.6'
+          'minio==4.0.6',
+          'retrying==1.3.3'
       ],
       include_package_data=True,
       zip_safe=False)

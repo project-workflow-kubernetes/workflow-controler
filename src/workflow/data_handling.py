@@ -13,11 +13,6 @@ minioPersistent = Minio(s.PERSISTENT_ADDR,
                         secret_key=s.SECRET_KEY,
                         secure=False)
 
-# if first time, copy everthing, if no, copy files and required inputs
-
-def register_job(minioClient, job_name):
-    return
-
 
 
 def latest_run(minioClient, bucket_name):
@@ -63,9 +58,3 @@ def copy_latest(minioClient, bucket_name, latest_commit,
     minioClient.fget_object(bucket_name,
                             os.path.join(latest_commit, 'dependencies.yaml'),
                             os.path.join(latest_path, 'dependencies.yaml'))
-
-
-if __name__ == '__main__':
-    commit = latest_run(minioPersistent, 'job-python')
-
-    copy_latest(minioPersistent, 'job-python', commit)
