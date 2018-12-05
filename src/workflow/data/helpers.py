@@ -78,15 +78,11 @@ def is_valid_request(request_json):
         raise KeyError('Some information is missing')
 
 
-@retry(stop_max_attempt_number=5)
-def tmp_to_persistent(minioClient, job_name, lookup_paths):
-
-    @retry(stop_max_attempt_number=5)
-    def safe_transfer(minio, path):
-        minioClient.fput_object(job_name, minio, path)
-
+def tmp_to_persistent(bucket, job_name, lookup_paths):
     for tmp_file, minio_file in lookup_paths.items():
-        safe_transfer(minio_file, tmp_file)
+        print(tmp_file)
+        print(minio_file)
+        bucket.upload_file(tmp_file, minio_file)
 
 
 def get_latest_path(all_commits):

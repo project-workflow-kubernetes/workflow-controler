@@ -15,7 +15,7 @@ def register_job(minioClient, job_name, job_url, repo_code_path,
                  repo_data_path='data', minio_code_path='code', mini_data_path='data',
                  prefix_tmp_path=s.VOLUME_PATH):
 
-    minioClient.make_bucket(job_name)
+    minioClient.create_bucket(Bucket=job_name)
 
     tmp_path = join(prefix_tmp_path, job_name)
 
@@ -31,18 +31,18 @@ def register_job(minioClient, job_name, job_url, repo_code_path,
 
     commit_hash = repo.commit().hexsha
 
-
     if not h.is_valid_repository(tmp_path, repo_code_path, repo_data_path):
         raise ValueError('{} in {} is not valid'.format(job_name, job_url))
 
     with open(join(tmp_path, 'dependencies.yaml'), 'r') as stream:
         dependencies = yaml.load(stream)
 
-
     lookup = h.get_lookup_paths(dependencies, commit_hash,
                                 tmp_path, repo_code_path, repo_data_path)
 
-    h.tmp_to_persistent(minioClient, job_name, lookup)
+    bucket = minioClient.Bucket(job_name)
+    print('bucket')
+    h.tmp_to_persistent(bucket, job_name, lookup)
 
     logging.warning('The job `{}` was sucefully registered in `{}`'.format(
         job_name, commit_hash))
@@ -50,7 +50,6 @@ def register_job(minioClient, job_name, job_url, repo_code_path,
     shutil.rmtree(tmp_path)
 
 
-@retry(stop_max_attempt_number=5)
 def get_persistent_commits(minioClient, job_name):
     all_commits = {}
 
