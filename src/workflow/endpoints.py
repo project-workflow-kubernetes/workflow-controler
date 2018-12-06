@@ -47,6 +47,7 @@ def home():
 @jsonapi
 def run():
 
+
     s3 = boto3.resource('s3', endpoint_url='http://' + s.PERSISTENT_ADDR,
                         aws_access_key_id=s.ACCESS_KEY,
                         aws_secret_access_key=s.SECRET_KEY,
