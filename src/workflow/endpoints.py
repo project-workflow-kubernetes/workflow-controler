@@ -76,7 +76,7 @@ def run():
 
         valid_run, commit, all_commits = b.get_persistent_state(s3, job_name, job_url)
         valid_repo = h.is_valid_repository(
-            join(s.VOLUME_PATH, job_name), join('src', job_name))
+            join(s.VOLUME_PATH, job_name, 'new'), join('src', job_name))
 
         if not valid_repo:
             shutil.rmtree(join(s.VOLUME_PATH, job_name))
@@ -107,7 +107,7 @@ def run():
         logging.warning(inputs_to_run)
         logging.warning(dag_to_argo)
 
-        with open(join(s.VOLUME_PATH, job_name, commit, 'dag.yaml'), 'w') as yaml_file:
+        with open(join(s.VOLUME_PATH, job_name, 'new', 'dag.yaml'), 'w') as yaml_file:
             yaml.dump(dag_to_argo, yaml_file, default_flow_style=False)
 
         del s3

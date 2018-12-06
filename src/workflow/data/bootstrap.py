@@ -70,10 +70,10 @@ def get_persistent_state(minioClient, job_name, job_url, prefix_tmp_path=s.VOLUM
 
     tmp_path = join(prefix_tmp_path, job_name)
     h.create_or_delete([tmp_path])
+    tmp_path = join(tmp_path, 'new')
+    h.create_or_delete([tmp_path])
     repo = Repo.clone_from(job_url, tmp_path)
 
     commit_hash = repo.commit().hexsha
-
-    print('got persistent')
 
     return commit_hash not in all_commits.keys(), commit_hash, all_commits
