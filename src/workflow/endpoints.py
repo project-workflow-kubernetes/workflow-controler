@@ -18,7 +18,6 @@ from workflow import settings as s
 from workflow.dag import argo, dag_helpers
 from workflow.data import bootstrap as b
 from workflow.data import helpers as h
-from workflow import data_handling
 
 
 mod = Blueprint('endpoints', __name__)
