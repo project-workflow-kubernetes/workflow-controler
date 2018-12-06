@@ -29,7 +29,8 @@ setup(name='workflow',
           'gunicorn==19.9.0',
           'GitPython==2.1.10',
           'minio==4.0.6',
-          'retrying==1.3.3'
+          'retrying==1.3.3',
+          'boto3==1.9.45'
       ],
       include_package_data=True,
       zip_safe=False)
