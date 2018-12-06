@@ -80,8 +80,6 @@ def is_valid_request(request_json):
 
 def tmp_to_persistent(bucket, job_name, lookup_paths):
     for tmp_file, minio_file in lookup_paths.items():
-        print(tmp_file)
-        print(minio_file)
         bucket.upload_file(tmp_file, minio_file)
 
 
@@ -93,20 +91,16 @@ def get_changed_files(minioClient, job_name, latest_commit,
                       repo_code_path, repo_data_path='data',  tmp_path=s.VOLUME_PATH,
                       minio_code_path='code', minio_data_path='data'):
 
-    @retry(stop_max_attempt_number=3)
-    def safe_get_minio(minio_path, local_path):
-        minioClient.fget_object(job_name, minio_path, local_path)
-
     copied_path = join(tmp_path, job_name, 'tmp')
 
-    safe_get_minio(join(latest_commit, 'dependencies.yaml'),
-                   join(copied_path, 'dependencies.yaml'))
+    minioClient.Bucket(job_name).download_file(join(latest_commit, 'dependencies.yaml'),
+                                               join(copied_path, 'dependencies.yaml'))
 
     dependencies_equal = filecmp.cmp(join(copied_path, 'dependencies.yaml'),
                                      join(tmp_path, job_name, 'dependencies.yaml'))
 
     with open(join(tmp_path, job_name, 'dependencies.yaml'), 'r') as stream:
-            dependencies = yaml.load(stream)
+        dependencies = yaml.load(stream)
 
     if not dependencies_equal:
         changed_files = list(dependencies.keys())
@@ -115,18 +109,20 @@ def get_changed_files(minioClient, job_name, latest_commit,
         changed_files = []
         for f in dependencies.keys():
             print(f)
-            safe_get_minio(join(latest_commit, minio_code_path, f),
-                           join(copied_path, f))
-            are_equal = filecmp.cmp(join(copied_path, f), join(tmp_path, job_name, repo_code_path, f))
+            minioClient.Bucket(job_name).download_file(join(latest_commit, minio_code_path, f),
+                                                       join(copied_path, f))
+            are_equal = filecmp.cmp(join(copied_path, f), join(
+                tmp_path, job_name, repo_code_path, f))
 
             if not are_equal:
                 changed_files.append(f)
 
         for f in get_inputs(dependencies):
             print(f)
-            safe_get_minio(join(latest_commit, minio_data_path, f),
-                           join(copied_path, f))
-            are_equal = filecmp.cmp(join(copied_path, f), join(tmp_path, job_name, repo_data_path, f))
+            minioClient.Bucket(job_name).download_file(join(latest_commit, minio_data_path, f),
+                                                       join(copied_path, f))
+            are_equal = filecmp.cmp(join(copied_path, f), join(
+                tmp_path, job_name, repo_data_path, f))
 
             if not are_equal:
                 changed_files.append(f)

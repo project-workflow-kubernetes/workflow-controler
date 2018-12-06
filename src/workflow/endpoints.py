@@ -66,15 +66,14 @@ def run():
                        job_url,
                        join('src', job_name))
 
-        # import pdb; pdb.set_trace()
         del s3
 
         return status.HTTP_201_CREATED
 
 
     else:
-        valid_run, commit, all_commits = b.get_persistent_state(
-            minioPersistent, job_name, job_url)
+
+        valid_run, commit, all_commits = b.get_persistent_state(s3, job_name, job_url)
         valid_repo = h.is_valid_repository(
             join(s.VOLUME_PATH, job_name), join('src', job_name))
 
@@ -96,7 +95,7 @@ def run():
                                                           job_name, latest_commit,
                                                           join('src', job_name))
 
-        print(changed_files)
+        logging.warning(changed_files)
 
         dags = [dag_helpers.get_subdag(dependencies, x) for x in changed_files]
         tasks = dag_helpers.get_merged_tasks(dags)
@@ -104,8 +103,10 @@ def run():
         inputs_to_run = dag_helpers.get_required_data(dependencies, tasks)
         dag_to_argo = argo.get_argo_spec(job_name, commit, data_to_argo)
 
-        print(inputs_to_run)
-        print(dag_to_argo)
+        logging.warning(inputs_to_run)
+        logging.warning(dag_to_argo)
+
+        del s3
 
         # if not validation.valid_run_id(s.PERSISTENT_STORAGE,
         #                            request_json['job_name'],

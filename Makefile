@@ -12,8 +12,9 @@ help:
 
 
 build:
-	@docker build -t ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} .
+	@docker build --no-cache -t ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} .
 	@docker run ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} /bin/bash -c "cd /workflow; py.test --verbose --color=yes"
+	@docker tag ${REMOTE_REPO}/${DOCKER_NAME}:${DOCKER_LABEL} ${REMOTE_REPO}/${DOCKER_NAME}:${GIT_MASTER_HEAD_SHA}
 
 
 push:

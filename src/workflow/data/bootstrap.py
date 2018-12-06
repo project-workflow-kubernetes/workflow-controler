@@ -53,15 +53,14 @@ def register_job(minioClient, job_name, job_url, repo_code_path,
 def get_persistent_commits(minioClient, job_name):
     all_commits = {}
 
-    @retry(stop_max_attempt_number=5)
-    def safe_list_objects(job_name):
-        return minioClient.list_objects(job_name)
+    my_bucket = minioClient.Bucket('job')
+    folders = list(set([x.key.split('/')[0] for x in my_bucket.objects.all()]))
 
-    for i in safe_list_objects(job_name):
-        folder_name = i.object_name[0:-1]
+    for i in folders:
         commit_date_path = join(i.object_name, 'commit_date.txt')
-        d = minioClient.get_object(job_name, commit_date_path).data.decode()
-        all_commits[folder_name] = datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
+        d = minioClient.Object(job_name, join(commit_date_path,
+                                              'commit_date.txt')).get()['Body'].read().decode('utf-8')
+        all_commits[i] = datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
 
     return all_commits
 
