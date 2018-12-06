@@ -35,14 +35,7 @@ httpClient = urllib3.ProxyManager(
 minioPersistent = Minio(s.PERSISTENT_ADDR,
                         access_key=s.ACCESS_KEY,
                         secret_key=s.SECRET_KEY,
-                        secure=False, http_client=httpClient)
-
-s3 = boto3.resource('s3',
-                    endpoint_url='http://localhost:9060',
-                    aws_access_key_id='minio',
-                    aws_secret_access_key='minio1234',
-                    config=Config(signature_version='s3v4'),
-                    region_name='us-east-1')
+                        secure=False)
 
 
 @mod.route('/', methods=['GET'])
@@ -73,24 +66,24 @@ def run():
                        job_url,
                        join('src', job_name))
 
+        # import pdb; pdb.set_trace()
+        del s3
+
         return status.HTTP_201_CREATED
 
+
     else:
-        print('to no else')
         valid_run, commit, all_commits = b.get_persistent_state(
             minioPersistent, job_name, job_url)
-        print('1')
         valid_repo = h.is_valid_repository(
             join(s.VOLUME_PATH, job_name), join('src', job_name))
 
-        print('2')
         if not valid_repo:
             shutil.rmtree(join(s.VOLUME_PATH, job_name))
             message = 'Invalid repository format, please check it in `{}`'.format(
                 'URL')
             logging.error(message)
             abort(500, message)
-        print('3')
         if not valid_run:
             shutil.rmtree(join(s.VOLUME_PATH, job_name))
             message = 'Invalid run `{}`, please update repository of `{}`'.format(
@@ -99,14 +92,13 @@ def run():
             abort(500, message)
 
         latest_commit = h.get_latest_path(all_commits)
-        print('4')
         dependencies, changed_files = h.get_changed_files(minioPersistent,
                                                           job_name, latest_commit,
                                                           join('src', job_name))
 
         print(changed_files)
 
-        dags = [dag_helpers.get_subdag(x) for x in changed_files]
+        dags = [dag_helpers.get_subdag(dependencies, x) for x in changed_files]
         tasks = dag_helpers.get_merged_tasks(dags)
         data_to_argo = argo.get_data_argo(dependencies, tasks)
         inputs_to_run = dag_helpers.get_required_data(dependencies, tasks)

@@ -65,7 +65,7 @@ def get_persistent_commits(minioClient, job_name):
 
     return all_commits
 
-@retry(stop_max_attempt_number=5)
+
 def get_persistent_state(minioClient, job_name, job_url, prefix_tmp_path=s.VOLUME_PATH):
 
     all_commits = get_persistent_commits(minioClient, job_name)
