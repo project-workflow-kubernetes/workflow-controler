@@ -2,6 +2,7 @@ import sys
 import logging
 from os.path import join
 import shutil
+import yaml
 
 from flask import request, Blueprint
 from flask_api import status
@@ -91,7 +92,7 @@ def run():
             abort(500, message)
 
         latest_commit = h.get_latest_path(all_commits)
-        dependencies, changed_files = h.get_changed_files(minioPersistent,
+        dependencies, changed_files = h.get_changed_files(s3,
                                                           job_name, latest_commit,
                                                           join('src', job_name))
 
@@ -106,17 +107,7 @@ def run():
         logging.warning(inputs_to_run)
         logging.warning(dag_to_argo)
 
+        with open(join(s.VOLUME_PATH, job_name, commit, 'dag.yaml'), 'w') as yaml_file:
+            yaml.dump(dag_to_argo, yaml_file, default_flow_style=False)
+
         del s3
-
-        # if not validation.valid_run_id(s.PERSISTENT_STORAGE,
-        #                            request_json['job_name'],
-        #                            request_json['run_id']):
-        #     raise KeyError('run_id is not valid')
-
-        # dag.generate_yaml(request_json['old_path_code'],
-        #               request_json['new_path_code'],
-        #               request_json['src'],
-        #               request_json['job_name'],
-        #               request_json['run_id'])
-
-        # return status.HTTP_201_CREATED

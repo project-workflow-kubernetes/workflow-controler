@@ -57,9 +57,8 @@ def get_persistent_commits(minioClient, job_name):
     folders = list(set([x.key.split('/')[0] for x in my_bucket.objects.all()]))
 
     for i in folders:
-        commit_date_path = join(i.object_name, 'commit_date.txt')
-        d = minioClient.Object(job_name, join(commit_date_path,
-                                              'commit_date.txt')).get()['Body'].read().decode('utf-8')
+        commit_date_path = join(i, 'commit_date.txt')
+        d = minioClient.Object(job_name, commit_date_path).get()['Body'].read().decode('utf-8')
         all_commits[i] = datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
 
     return all_commits

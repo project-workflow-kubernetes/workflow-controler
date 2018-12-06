@@ -88,10 +88,11 @@ def get_latest_path(all_commits):
 
 
 def get_changed_files(minioClient, job_name, latest_commit,
-                      repo_code_path, repo_data_path='data',  tmp_path=s.VOLUME_PATH,
+                      repo_code_path, repo_data_path='data', tmp_path=s.VOLUME_PATH,
                       minio_code_path='code', minio_data_path='data'):
 
     copied_path = join(tmp_path, job_name, 'tmp')
+    create_or_delete([copied_path])
 
     minioClient.Bucket(job_name).download_file(join(latest_commit, 'dependencies.yaml'),
                                                join(copied_path, 'dependencies.yaml'))

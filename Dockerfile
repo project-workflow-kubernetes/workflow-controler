@@ -10,4 +10,7 @@ RUN find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf
 RUN pip install -U -r workflow/requirements.txt
 RUN pip install workflow/.
 
+RUN curl -sSL -o /usr/local/bin/argo https://github.com/argoproj/argo/releases/download/v2.2.1/argo-linux-amd64
+RUN chmod +x /usr/local/bin/argo
+
 WORKDIR /workflow/src/workflow

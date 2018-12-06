@@ -34,11 +34,11 @@ def get_header(job_name, run_id, volume_name='minio-tmp', log_level='INFO'):
             }
 
 
-def get_template(job_name, run_id, task_name, container_id, command,
+def get_template(job_name, run_id, task_name, image_name, image_id, command,
                  mount_path='/data'):
 
     return {'name': '{job}-{task}'.format(job=job_name, task=task_name),
-            'container': {'image': container_id,
+            'container': {'image': '{}:{}'.format(image_name, image_id),
                           'env': [
                               {'name': 'LOG_LEVEL',
                                'value': '"{{workflow.parameters.log-level}}"'},
@@ -105,11 +105,13 @@ def get_data_argo(dependencies, tasks):
 def get_argo_spec(job_name, run_id, data):
 
     header = get_header(job_name, run_id)
+    image_id = run_id[0:7]
 
     templates = [get_template(rename(job_name),
                               run_id,
                               rename(k),
                               v['image'],
+                              image_id,
                               v['command'])
                  for k, v in data.items()]
 
