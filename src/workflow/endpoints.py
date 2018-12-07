@@ -3,6 +3,8 @@ import logging
 from os.path import join
 import shutil
 import yaml
+import time
+import subprocess as sp
 
 from flask import request, Blueprint
 from flask_api import status
@@ -109,5 +111,25 @@ def run():
 
         with open(join(s.VOLUME_PATH, job_name, 'new', 'dag.yaml'), 'w') as yaml_file:
             yaml.dump(dag_to_argo, yaml_file, default_flow_style=False)
+
+        time.sleep(2*60)
+
+        cmd = 'argo submit --watch {}/{}/new/dag.yaml'.format(s.VOLUME_PATH, job_name)
+
+        process = sp.Popen(cmd,
+                       stdin=sp.PIPE,
+                       stdout=sp.PIPE,
+                       stderr=sp.STDOUT,
+                       close_fds=True,
+                       shell=True)
+
+        while process.poll() == 0:
+            time.sleep(0.1)
+
+        out, err = process.communicate()
+        out = out.decode('utf-8').split('\n') if out else out
+        err = err.decode('utf-8').split('\n') if err else err
+
+        logging.error(out)
 
         del s3
