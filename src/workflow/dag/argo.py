@@ -43,21 +43,13 @@ def get_template(job_name, run_id, task_name, image_name, image_id, command,
                               {'name': 'LOG_LEVEL',
                                'value': '"{{workflow.parameters.log-level}}"'},
                               {'name': 'DATA_INPUT_PATH',
-                               'valueFrom': {'configMapKeyRef':
-                                             {'name': '{}-{}-config'.format(job_name, run_id),
-                                              'key': 'data_input_path'}}},
+                               'value': '/data/{}/new/data'.format(job_name)},
                               {'name': 'DATA_OUTPUT_PATH',
-                               'valueFrom': {'configMapKeyRef':
-                                             {'name': '{}-{}-config'.format(job_name, run_id),
-                                              'key': 'data_output_path'}}},
+                               'value': '/data/{}/new/data'.format(job_name)},
                               {'name': 'LOGS_OUTPUT_PATH',
-                               'valueFrom': {'configMapKeyRef':
-                                             {'name': '{}-{}-config'.format(job_name, run_id),
-                                              'key': 'data_logs_path'}}},
+                               'value': '/data/{}/new/data'.format(job_name)},
                               {'name': 'METADATA_OUTPUT_PATH',
-                               'valueFrom': {'configMapKeyRef':
-                                             {'name': '{}-{}-config'.format(job_name, run_id),
-                                              'key': 'data_metadata_path'}}}
+                               'value': '/data/{}/new/data'.format(job_name)}
                           ],
                           'imagePullPolicy': 'IfNotPresent',
                           'command': ['python', 'executor/src/executor/main.py', command],
