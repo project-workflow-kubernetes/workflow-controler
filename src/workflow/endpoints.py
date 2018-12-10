@@ -102,13 +102,15 @@ def run():
 
         # time.sleep(2*60) # remove me
 
-        cmd = 'argo submit --watch {}/{}/new/dag.yaml'.format(
+        logging.error('{}/{}/new/dag.yaml'.format(s.VOLUME_PATH, job_name))
+
+        cmd = 'argo_handler.sh -f {}/{}/new/dag.yaml -t 10m'.format(
             s.VOLUME_PATH, job_name)
 
         process = sp.Popen(cmd,
                            stdin=sp.PIPE,
                            stdout=sp.PIPE,
-                           stderr=sp.STDOUT,
+                           stderr=sp.PIPE,
                            close_fds=True,
                            shell=True)
 
@@ -120,11 +122,16 @@ def run():
         err = err.decode('utf-8').split('\n') if err else err
 
         logging.error(out)
+        logging.error(err)
 
-
-        looup_path = h.get_lookup_paths(dependencies, commit, join(s.VOLUME_PATH, job_name, 'new'), repo_code_path='src/{}'.format(job_name))
-        bucket = s3.Bucket(job_name)
-        logging.error('bucket')
-        h.tmp_to_persistent(bucket, job_name, looup_path)
+        if not err:
+            looup_path = h.get_lookup_paths(dependencies, commit,
+                                            join(s.VOLUME_PATH, job_name, 'new'),
+                                            repo_code_path='src/{}'.format(job_name))
+            bucket = s3.Bucket(job_name)
+            h.tmp_to_persistent(bucket, job_name, looup_path)
+        else:
+            logging.error(err)
+            abort(500, err)
 
         del s3
