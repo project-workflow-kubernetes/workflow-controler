@@ -26,20 +26,6 @@ from workflow.data import helpers as h
 mod = Blueprint('endpoints', __name__)
 
 
-httpClient = urllib3.ProxyManager(
-    'https://proxy_host.sampledomain.com:8119/',
-    timeout=urllib3.Timeout.DEFAULT_TIMEOUT,
-    retries=urllib3.Retry(
-        total=10,
-        backoff_factor=1,
-        status_forcelist=[500, 502, 503, 504]))
-
-minioPersistent = Minio(s.PERSISTENT_ADDR,
-                        access_key=s.ACCESS_KEY,
-                        secret_key=s.SECRET_KEY,
-                        secure=False)
-
-
 @mod.route('/', methods=['GET'])
 @jsonapi
 def home():
@@ -49,7 +35,6 @@ def home():
 @mod.route('/run', methods=['POST'])
 @jsonapi
 def run():
-
 
     s3 = boto3.resource('s3', endpoint_url='http://' + s.PERSISTENT_ADDR,
                         aws_access_key_id=s.ACCESS_KEY,
@@ -75,7 +60,11 @@ def run():
 
     else:
 
-        valid_run, commit, all_commits = b.get_persistent_state(s3, job_name, job_url)
+        temp_path = join(s.VOLUME_PATH, job_name, 'new')
+        h.create_or_clean([temp_path])
+
+        valid_run, commit, all_commits = b.get_persistent_state(
+            s3, job_name, job_url)
         valid_repo = h.is_valid_repository(
             join(s.VOLUME_PATH, job_name, 'new'), join('src', job_name))
 
@@ -111,16 +100,17 @@ def run():
         with open(join(s.VOLUME_PATH, job_name, 'new', 'dag.yaml'), 'w') as yaml_file:
             yaml.dump(dag_to_argo, yaml_file, default_flow_style=False)
 
-        time.sleep(2*60)
+        # time.sleep(2*60) # remove me
 
-        cmd = 'argo submit --watch {}/{}/new/dag.yaml'.format(s.VOLUME_PATH, job_name)
+        cmd = 'argo submit --watch {}/{}/new/dag.yaml'.format(
+            s.VOLUME_PATH, job_name)
 
         process = sp.Popen(cmd,
-                       stdin=sp.PIPE,
-                       stdout=sp.PIPE,
-                       stderr=sp.STDOUT,
-                       close_fds=True,
-                       shell=True)
+                           stdin=sp.PIPE,
+                           stdout=sp.PIPE,
+                           stderr=sp.STDOUT,
+                           close_fds=True,
+                           shell=True)
 
         while process.poll() == 0:
             time.sleep(0.1)
@@ -130,5 +120,11 @@ def run():
         err = err.decode('utf-8').split('\n') if err else err
 
         logging.error(out)
+
+
+        looup_path = h.get_lookup_paths(dependencies, commit, join(s.VOLUME_PATH, job_name, 'new'), repo_code_path='src/{}'.format(job_name))
+        bucket = s3.Bucket(job_name)
+        logging.error('bucket')
+        h.tmp_to_persistent(bucket, job_name, looup_path)
 
         del s3

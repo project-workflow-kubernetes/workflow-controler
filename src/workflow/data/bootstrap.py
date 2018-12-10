@@ -76,4 +76,10 @@ def get_persistent_state(minioClient, job_name, job_url, prefix_tmp_path=s.VOLUM
 
     commit_hash = repo.commit().hexsha
 
+    commit_date = (repo.commit()
+                   .committed_datetime
+                   .strftime("%Y-%m-%d %H:%M:%S"))
+    with open(join(tmp_path, 'commit_date.txt'), "w") as f:
+        f.write(commit_date)
+
     return commit_hash not in all_commits.keys(), commit_hash, all_commits

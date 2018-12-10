@@ -3,7 +3,6 @@ from os.path import join, isdir, exists, isfile
 import shutil
 import operator
 
-from retrying import retry
 import filecmp
 import yaml
 
@@ -14,9 +13,15 @@ from workflow.dag import dag_helpers as d
 def create_or_delete(paths):
     for p in paths:
         if not exists(p):
-            os.mkdir(p)
+            os.makedirs(p)
         else:
             shutil.rmtree(p)
+
+def create_or_clean(paths):
+    for p in paths:
+        if exists(p):
+            shutil.rmtree(p)
+        os.makedirs(p)
 
 
 def get_inputs(dependencies):
