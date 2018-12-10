@@ -73,7 +73,6 @@ def run():
 
         return status.HTTP_201_CREATED
 
-
     else:
 
         valid_run, commit, all_commits = b.get_persistent_state(s3, job_name, job_url)

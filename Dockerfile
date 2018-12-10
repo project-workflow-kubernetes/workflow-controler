@@ -13,4 +13,6 @@ RUN pip install workflow/.
 RUN curl -sSL -o /usr/local/bin/argo https://github.com/argoproj/argo/releases/download/v2.2.1/argo-linux-amd64
 RUN chmod +x /usr/local/bin/argo
 
+EXPOSE 8000
+
 WORKDIR /workflow/src/workflow

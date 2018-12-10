@@ -2,4 +2,8 @@
 
 set -eo pipefail
 
-gunicorn --log-level debug --timeout 300 --graceful-timeout 300 -k eventlet manage:app
+gunicorn --bind 0.0.0.0:8000 \
+         --log-level debug \
+         --timeout 300 \
+         --graceful-timeout 300 \
+         -k eventlet manage:app
