@@ -104,7 +104,7 @@ def run():
 
         logging.error('{}/{}/new/dag.yaml'.format(s.VOLUME_PATH, job_name))
 
-        cmd = 'argo_handler.sh -f {}/{}/new/dag.yaml -t 10m'.format(
+        cmd = 'bash argo_handler.sh -f {}/{}/new/dag.yaml -t 10m'.format(
             s.VOLUME_PATH, job_name)
 
         process = sp.Popen(cmd,
