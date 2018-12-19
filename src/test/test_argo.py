@@ -1,8 +1,7 @@
 import unittest
 
-import networkx as nx
 
-from workflow.dag import argo as a
+from workflow import argo as a
 
 
 class TestArgo(unittest.TestCase):

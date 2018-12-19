@@ -2,7 +2,7 @@ import collections
 
 import networkx as nx
 
-from workflow.dag.dag_helpers import get_dag_inputs
+from workflow.dag import get_dag_inputs
 
 
 def is_dependency_valid(dependencies):
