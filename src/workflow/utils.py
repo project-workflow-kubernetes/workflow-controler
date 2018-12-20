@@ -1,9 +1,10 @@
 import os
-from os.path import join, isdir, exists, isfile
+from os.path import exists
 import shutil
 
 
 def create_or_destroy(path):
+    """Delete folders and create empty ones"""
     if not os.path.exists(path):
         os.makedirs(path)
     else:
@@ -12,18 +13,12 @@ def create_or_destroy(path):
 
 
 def create_or_delete(paths):
+    """Delete folders if exists or create empty ones"""
     for p in paths:
         if not exists(p):
             os.makedirs(p)
         else:
             shutil.rmtree(p)
-
-
-def create_or_clean(paths):
-    for p in paths:
-        if exists(p):
-            shutil.rmtree(p)
-        os.makedirs(p)
 
 
 def rename(s):

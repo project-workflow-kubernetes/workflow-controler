@@ -2,10 +2,12 @@ import collections
 
 import networkx as nx
 
-from workflow.dag import get_dag_inputs
+from workflow import utils, dag
 
 
 def is_dependency_valid(dependencies):
+    """Returns True if `dependencies.yaml` has a valid format, False otherwise"""
+
     inputs_req = lambda x: 'inputs' in dependencies[d] and isinstance(x['inputs'], collections.Iterable)
     outputs_req = lambda x: 'outputs' in dependencies[d] and isinstance(x['outputs'], collections.Iterable)
     image_req = lambda x: 'image' in dependencies[d] and isinstance(x['image'], str)
@@ -21,7 +23,7 @@ def is_dependency_valid(dependencies):
 
 
 def get_header(job_name, run_id, volume_name='minio-tmp', log_level='INFO'):
-
+    """Returns a dictionary with the header of file to be sent to argo"""
     return {'apiVersion': 'argoproj.io/v1alpha1',
             'kind': 'Workflow',
             'metadata': {'generateName': 'dag-{job}-{id}-'.format(job=job_name, id=run_id)},
@@ -36,7 +38,7 @@ def get_header(job_name, run_id, volume_name='minio-tmp', log_level='INFO'):
 
 def get_template(job_name, run_id, task_name, image_name, image_id, command,
                  mount_path='/data'):
-
+    """Returns a dictionary with template of tasks to be sent to argo"""
     return {'name': '{job}-{task}'.format(job=job_name, task=task_name),
             'container': {'image': '{}:{}'.format(image_name, image_id),
                           'env': [
@@ -59,10 +61,11 @@ def get_template(job_name, run_id, task_name, image_name, image_id, command,
 
 
 def get_dag_template(job_name, task_name, dependencies):
+    """Return dictionary of dag templates to be sent to argo"""
     task = '{job}-{task}'.format(job=job_name, task=task_name)
 
     if dependencies:
-        dependencies = ['{}-{}'.format(job_name, rename(d))
+        dependencies = ['{}-{}'.format(job_name, utils.rename(d))
                         for d in dependencies]
         return {'name': task,
                 'dependencies': dependencies,
@@ -72,15 +75,23 @@ def get_dag_template(job_name, task_name, dependencies):
                 'template': task}
 
 
-def rename(s):
-    return s.replace('.', '-').replace('_', '-')
-
-
 def get_data_argo(dependencies, tasks):
-    edges, _ = get_dag_inputs(dependencies)
-    dag = nx.DiGraph(edges)
+    """Transform data to be consumed by `get_argo_spec`
 
-    ancestors_operators = [[o for o in list(nx.ancestors(dag, t))
+    Args:
+        dependencies: dictionary where keys are scripts names (or tasks)
+                      and values are dictionaries with keys `inputs`
+                      and `outputs` of each task
+        tasks: list of string with tasks names
+
+    Returns:
+        Dictionary where the keys are tasks names and the values are dictionaries with `dependencies`, `command` and `image`
+
+    """
+    edges, _ = dag.get_dag_inputs(dependencies)
+    dag_graph = nx.DiGraph(edges)
+
+    ancestors_operators = [[o for o in list(nx.ancestors(dag_graph, t))
                             if o in dependencies.keys() and o in tasks]
                            for t in tasks]
 
@@ -95,24 +106,24 @@ def get_data_argo(dependencies, tasks):
 
 
 def get_argo_spec(job_name, run_id, data):
-
+    """Returns full template to be sent to argo"""
     header = get_header(job_name, run_id)
     image_id = run_id[0:7]
 
-    templates = [get_template(rename(job_name),
+    templates = [get_template(utils.rename(job_name),
                               run_id,
-                              rename(k),
+                              utils.rename(k),
                               v['image'],
                               image_id,
                               v['command'])
                  for k, v in data.items()]
 
-    tasks = [get_dag_template(rename(job_name),
-                              rename(k),
+    tasks = [get_dag_template(utils.rename(job_name),
+                              utils.rename(k),
                               v['dependencies'])
              for k, v in data.items()]
 
-    tasks = {'name': '{job}-{id}'.format(job=rename(job_name), id=run_id),
+    tasks = {'name': '{job}-{id}'.format(job=utils.rename(job_name), id=run_id),
              'dag': {'tasks': tasks}}
 
     templates.append(tasks)

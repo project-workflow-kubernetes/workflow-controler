@@ -1,7 +1,7 @@
 import unittest
 
 
-from workflow import argo as a
+from workflow import argo as a, utils as u
 
 
 class TestArgo(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestArgo(unittest.TestCase):
 
     def test_rename(self):
         expected_output = 'my-file-py'
-        output = a.rename('my_file.py')
+        output = u.rename('my_file.py')
         self.assertEqual(output, expected_output)
 
 
