@@ -43,7 +43,7 @@ print(r.text)
 or
 
 ```bash
-curl 
+curl -H "Content-Type: application/json" -X POST -d '{"job_name": "job","job_url": "https://gitlab.com/liabifano/job.git"}' http://localhost:8000/run
 ```
 
 ## Troubleshooting and Development

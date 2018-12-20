@@ -56,7 +56,6 @@ def register_job(minioClient, job_name, job_url, repo_code_path,
                                    tmp_path, repo_code_path, repo_data_path)
 
     bucket = minioClient.Bucket(job_name)
-    print('bucket')
     data.tmp_to_persistent(bucket, job_name, lookup)
 
     logging.warning('The job `{}` was sucefully registered in `{}`'.format(
@@ -82,7 +81,7 @@ def runner(minioClient, job_name, job_url, repo_code_path, repo_data_path='data'
     """
 
     temp_path = join(settings.VOLUME_PATH, job_name, 'new')
-    utils.create_or_clean([temp_path])
+    utils.create_or_delete([temp_path])
 
     valid_run, commit, all_commits = data.get_persistent_state(
         minioClient, job_name, job_url)
