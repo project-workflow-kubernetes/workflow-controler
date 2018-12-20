@@ -53,3 +53,7 @@ install: clean
 	@echo "\n --- Creating env: $(PROJECT_NAME) in $(shell which conda) ---\n"
 	@echo "\n--- Installing dependencies ---\n"
 	bash -c "source activate $(PROJECT_NAME) && pip install -e . && pip install -U -r requirements.txt && source deactivate"
+
+local-run:
+	bash -c "source activate $(PROJECT_NAME)"
+	@echo "Hey"
