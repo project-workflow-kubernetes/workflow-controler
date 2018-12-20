@@ -32,7 +32,7 @@ def run():
 
     s3 = boto3.resource('s3', endpoint_url=settings.PERSISTENT_ADDR,
                         aws_access_key_id=settings.ACCESS_KEY,
-                        aws_secret_access_key=set.SECRET_KEY,
+                        aws_secret_access_key=settings.SECRET_KEY,
                         config=Config(signature_version='s3v4'),
                         region_name='us-east-1')
 

@@ -14,7 +14,10 @@ def is_dependency_valid(dependencies):
     command_req = lambda x: 'command' in dependencies[d] and isinstance(x['command'], str)
 
     for d in dependencies:
-        is_ok = inputs_req(dependencies[d]) and outputs_req(dependencies[d]) and image_req(dependencies[d]) or command_req(dependencies[d])
+        is_ok = (inputs_req(dependencies[d])
+                 and outputs_req(dependencies[d])
+                 and image_req(dependencies[d])
+                 and command_req(dependencies[d]))
 
         if not is_ok:
             return False
