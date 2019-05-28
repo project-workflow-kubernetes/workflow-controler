@@ -12,7 +12,6 @@ from git import Repo
 
 from workflow import settings, utils, dag
 
-
 def get_inputs(dependencies):
     """Get all inputs of all tasks
 

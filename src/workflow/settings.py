@@ -10,3 +10,6 @@ VOLUME_PATH = os.environ['DATA_PATH'] if os.environ.get('DATA_PATH', None) else 
 
 ACCESS_KEY = os.environ['MINIO_ACCESS_KEY'] if os.environ.get('MINIO_ACCESS_KEY', None) else 'minio'
 SECRET_KEY = os.environ['MINIO_SECRET_KEY'] if os.environ.get('MINIO_SECRET_KEY', None) else 'minio1234'
+
+REDIS_HOST = os.environ['REDIS_HOST'] if os.environ.get('REDIS_HOST', None) else 'localhost'
+REDIS_PORT = os.environ['REDIS_PORT'] if os.environ.get('REDIS_PORT', None) else '6379'

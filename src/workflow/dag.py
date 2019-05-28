@@ -1,5 +1,5 @@
 import networkx as nx
-
+from workflow import dd
 
 def get_all_files(dependencies):
     """Get all required files in a job
@@ -15,6 +15,7 @@ def get_all_files(dependencies):
     """
 
     all_scripts = list(dependencies.keys())
+
     all_inputs = [n for m in [x['inputs']
                               for x in dependencies.values()] for n in m]
     all_outputs = [n for m in [x['outputs']
@@ -51,6 +52,18 @@ def get_dag_inputs(tasks):
 
     return edges, attrs
 
+def get_subdag_of_changed_images(dependencies, changed_tasks):
+    all_scripts = list(dependencies.keys())
+
+    edges, nodes_attr = get_dag_inputs(dependencies)
+    dag = nx.DiGraph(edges)
+    nx.set_node_attributes(dag, nodes_attr)
+
+    if not is_dag_valid(dag):
+        raise Exception('Not valid DAG, check your dependencies.json file')
+
+    changed_dags = [get_subgraph(dag, changed_task) for changed_task in changed_tasks]
+    return get_merged_tasks(changed_dags)
 
 def get_subdag(dependencies, changed_file):
     """Get all the tasks and inputs dependencies related with the changed file

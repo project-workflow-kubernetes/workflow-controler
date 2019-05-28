@@ -20,6 +20,35 @@ class TestDag(unittest.TestCase):
                           'o2': {'inputs': ['d3', 'd4'],
                                  'outputs': ['d5']}}
 
+    def test_changed_images(self):
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o1"]),
+                             ["o1", "o2", "o3"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o1", "o2"]),
+                             ["o1", "o2", "o3"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o1", "o2", "o3"]),
+                             ["o1", "o2", "o3"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o1", "o2", "o3", "o4"]),
+                             ["o1", "o2", "o3", "o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o2"]),
+                             ["o2", "o3"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o2", "o3"]),
+                             ["o2", "o3"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o2", "o3", "o4"]),
+                             ["o2", "o3", "o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o2", "o3", "o4", "o1"]),
+                             ["o1", "o2", "o3", "o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o3"]),
+                             [])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o4"]),
+                             ["o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o4"]),
+                             ["o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o1", "o4"]),
+                             ["o1", "o2", "o3", "o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o2", "o4"]),
+                             ["o2", "o3", "o4"])
+        self.assertListEqual(d.get_subdag_of_changed_images(self.__class__.dependencies, ["o3", "o4"]),
+                             ["o4"])
 
     def test_get_dag_inputs(self):
         expected_output = ([('d1', 'o1'),
