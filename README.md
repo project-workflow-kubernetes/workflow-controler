@@ -80,8 +80,10 @@ You must have the port `8000` free, a minio application running at [http://local
 Contains functions `register_job` (will register for the first time a job) and `runner` (will check if `dependencies.yaml`, `commit hash`, `folders` are valid and submit to argo). Those function will be called by the endpoint `/run` in the file `endpoints.py`.
 
 #### `src/workflow/data.py`
-Containes functions to move data around, check if data is valid, get state of persistent storage, check changes in new repositories.
+Contains functions to move data around, check if data is valid, get state of persistent storage, check changes in new repositories.
 
+### `src/workflow/dd.py`
+Contains functions to check if images have changed and we need to rerun the workflows.
 
 #### `src/workflow/dag.py`
 Contains all functions to deal with dependencies of a job. The tests are available in `src/test/test_dag.py`.

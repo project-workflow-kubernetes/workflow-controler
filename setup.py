@@ -30,7 +30,9 @@ setup(name='workflow',
           'GitPython==2.1.10',
           'minio==4.0.6',
           'retrying==1.3.3',
-          'boto3==1.9.45'
+          'boto3==1.9.45',
+          'docker==3.7.2',
+          'redis==3.2.1'
       ],
       include_package_data=True,
       zip_safe=False)
