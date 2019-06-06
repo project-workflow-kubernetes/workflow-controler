@@ -22,7 +22,7 @@ The gif below shows a brief overview of all interactions inside the cluster.
 
 ## Endpoints
 
-The JSON API has two endpoints, the `home` returns `200` if the service is up and `/run` deals with `POST` requests containing `job_name` and `job_url` which will return status `201` if everthing worked as expected.
+The JSON API has three endpoints, the `home` returns `200` if the service is up, `/run` and `/sync` deals with `POST` requests containing `job_name` and `job_url` which will return status `201` if everthing worked as expected.
 
 
 If you are running a local kubernetes, you should submit your job at [http://localhost:8000/run](http://localhost:8000/run):
@@ -45,6 +45,39 @@ or
 ```bash
 curl -H "Content-Type: application/json" -X POST -d '{"job_name": "job","job_url": "https://gitlab.com/liabifano/job.git"}' http://localhost:8000/run
 ```
+
+### Sync
+
+```python
+import requests
+
+url = "http://localhost:8000/sync"
+
+payload = "{\n\t\"job_name\": \"job\",\n\t\"job_url\": \"https://gitlab.com/rusucosmin/job.git\"\n}"
+headers = {
+    'Content-Type': "application/json",
+    'Cache-Control': "no-cache"
+    }
+
+response = requests.request("POST", url, data=payload, headers=headers)
+
+print(response.text)
+```
+
+or
+
+```bash
+curl -X POST \
+  http://localhost:8000/sync \
+  -H 'Cache-Control: no-cache' \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"job_name": "job",
+	"job_url": "https://gitlab.com/rusucosmin/job.git"
+}'
+```
+
+
 
 ## Troubleshooting and Development
 
