@@ -8,7 +8,7 @@ setup(name='workflow',
       packages=find_packages('src'),
       version='0.0.1',
       install_requires=[
-          'numpy==1.15.1',
+          'numpy==1.22.0',
           'pandas==0.23.0',
           'scipy==1.1.0',
           'networkx==2.1',

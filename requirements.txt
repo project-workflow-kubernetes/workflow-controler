@@ -26,7 +26,7 @@ jmespath==0.9.4
 minio==4.0.6
 monotonic==1.5
 networkx==2.1
-numpy==1.15.1
+numpy==1.22.0
 pandas==0.23.0
 pycodestyle==2.3.0
 pyflakes==2.1.1
